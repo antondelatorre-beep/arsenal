@@ -158,13 +158,12 @@ function ring(m, half, h, t, c, gapS, mat) {
 function free(rects, x, z, pad) { for (const r of rects) if (x > r[0] - pad && x < r[1] + pad && z > r[2] - pad && z < r[3] + pad) return false; return true; }
 
 /* ================= MAP: OIL RIG ================= */
-function rig() {
-  const m = mkMap({ name: 'Oil Rig', half: 34, floorY: null, killY: 0.8, water: '#1b6694', skyTop: '#3f8fd6', skyBot: '#d3e8f5', fog: '#c3dcec', surface: 'metal' });
+function rigTile(m, v, F) {
   m.box(0, 3.5, 0, 64, .5, 64, '#5e676f', 'metal'); // deck top y=4
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) m.box(sx * 26, -16, sz * 26, 5, 19.5, 5, '#c47a24', 'metal');
   for (let i = -3; i <= 3; i++) m.deco.push({ t: 'box', x: i * 9, y: 2.5, z: 0, w: 1, h: .9, d: 64, c: '#444b52' });
   const R = (x, z, w, d) => m.box(x, 4, z, w, 1.1, d, '#e0b52c', 'metal');
-  R(0, -31.7, 64, .4); R(-31.7, 0, .4, 64); R(31.7, -13, .4, 38); R(31.7, 23, .4, 18); R(-18, 31.7, 28, .4); R(20, 31.7, 24, .4);
+  if (F.n) R(0, -31.7, 64, .4); if (F.w) R(-31.7, 0, .4, 64); if (F.e) { R(31.7, -13, .4, 38); R(31.7, 23, .4, 18); } if (F.s) { R(-18, 31.7, 28, .4); R(20, 31.7, 24, .4); }
   // upper deck (top y=8.8)
   m.box(16, 8.4, -19, 28, .4, 22, '#6b747c', 'metal');
   for (const cx of [3.5, 28.5]) for (const cz of [-29, -9]) m.box(cx, 4, cz, 1.2, 4.4, 1.2, '#c47a24', 'metal');
@@ -202,15 +201,13 @@ function rig() {
   m.box(28, 4, 22, 3, 5, 3, '#e0b52c', 'metal');
   m.deco.push({ t: 'beam', a: [28, 9, 22], b: [12, 24, 22], r: .35, c: '#e0b52c' }, { t: 'beam', a: [28, 9, 22], b: [28, 22, 22], r: .3, c: '#e0b52c' }, { t: 'beam', a: [28, 22, 22], b: [12, 24, 22], r: .12, c: '#444' });
   m.spawns = [[2, 4.1, 2], [-4, 4.1, -3], [20, 4.1, 16], [-26, 4.1, 26], [29, 4.1, 8], [-28, 4.1, -14], [-4, 4.1, 28 - 8], [10, 4.1, -20], [24, 4.1, -20], [16, 8.9, -19], [8, 8.9, -14], [-22, 8.1, 18], [-17, 7.8, -8]];
-  return m;
+  m.perches = [[[-9, 4, -12], [3.5, 8.9, -12], [12, 8.9, -18]], [[-5, 4, 18], [-20, 8.1, 18]], [[-1, 4, -8], [-16, 7.8, -8]], [[26, 4, 4], [26, 8.9, -12], [20, 8.9, -18]]];
 }
 
 /* ================= MAP: VILLAGE ================= */
-function village() {
-  const m = mkMap({ name: 'Village', half: 60, floorY: 0, ground: '#5f9138', skyTop: '#4a97df', skyBot: '#dcf0fb', fog: '#d3e8f4', surface: 'grass' });
-  const R = rng(11), used = [];
+function villageTile(m, v) {
+  const R = rng(11 + v * 13), used = [];
   m.deco.push({ t: 'box', x: 0, y: .02, z: 0, w: 7, h: .05, d: 120, c: '#a08c6a' }, { t: 'box', x: 0, y: .02, z: 6, w: 120, h: .05, d: 6, c: '#a08c6a' });
-  ring(m, 60, 3, .8, '#8d8f8a', null, 'concrete');
   const H = (x, z, w, d, c, rc, gp, h) => {
     h = h || 3.2; building(m, x, z, w, d, 0, h, c, gp, 'wood');
     m.deco.push({ t: 'pyr', x: x, y: h, z: z, w: w + 1.2, d: d + 1.2, h: 2.8, c: rc }, { t: 'box', x: x + w / 4, y: h + 1, z: z, w: .8, h: 2.2, d: .8, c: '#8a7f78' });
@@ -257,16 +254,12 @@ function village() {
     if (R() < .4) m.box(x + .2, hay ? 1.3 : s, z, 1.1, 1.1, 1.1, '#a87a45', 'wood');
     used.push([x - 1.5, x + 1.5, z - 1.5, z + 1.5]);
   }
-  return m;
+  m.perches = [[[9, 0, -23], [9, 6.5, -40]]];
 }
 
 /* ================= MAP: ZOO ================= */
-function zoo() {
-  const m = mkMap({ name: 'Zoo', half: 60, floorY: 0, ground: '#78a84d', skyTop: '#58a6e8', skyBot: '#e3f3fc', fog: '#d6ebf7', surface: 'gravel' });
-  const R = rng(23), used = [];
-  ring(m, 60, 3, .8, '#4a4d52', [{ c: 0, w: 12, t: 3 }], 'metal');
-  m.box(-5, 0, 58.6, 2, 6, 2, '#a8553a', 'concrete'); m.box(5, 0, 58.6, 2, 6, 2, '#a8553a', 'concrete'); m.box(0, 5.2, 58.6, 12, 1.2, 1.4, '#a8553a', 'concrete');
-  m.deco.push({ t: 'box', x: 0, y: 5.4, z: 57.8, w: 8, h: .8, d: .2, c: '#f2c230' });
+function zooTile(m, v) {
+  const R = rng(23 + v * 17), used = [];
   m.deco.push({ t: 'box', x: 0, y: .02, z: 0, w: 7, h: .05, d: 120, c: '#d2c29a' }, { t: 'box', x: 0, y: .02, z: 0, w: 120, h: .05, d: 7, c: '#d2c29a' }, { t: 'cyl', x: 0, y: 0, z: 0, r: 11, h: .06, c: '#d9caa3' });
   m.box(0, 0, 0, 5, .9, 5, '#9aa4ad', 'concrete'); m.deco.push({ t: 'cyl', x: 0, y: 0, z: 0, r: 3.2, h: 1, c: '#9aa4ad' }, { t: 'cyl', x: 0, y: .9, z: 0, r: 2.6, h: .1, c: '#5bbad5' }, { t: 'cyl', x: 0, y: .9, z: 0, r: .3, h: 2.2, c: '#9aa4ad' });
   used.push([-12, 12, -12, 12]);
@@ -326,10 +319,46 @@ function zoo() {
     m.box(x, 0, z, 1.6, .5, .6, '#8a5a2b', 'wood'); used.push([x - 1, x + 1, z - 1, z + 1]);
   }
   for (const l of [[-6, -6], [6, 6], [-6, 6], [6, -6], [0, -30], [0, 30], [-30, 0], [30, 0]]) m.deco.push({ t: 'cyl', x: l[0] * 1.0 + 3.8, y: 0, z: l[1] * 1.0 + 3.8, r: .1, h: 4, c: '#333' }, { t: 'sph', x: l[0] + 3.8, y: 4.2, z: l[1] + 3.8, r: .35, c: '#fff6c0' });
-  return m;
+  m.perches = [[[31, 0, 12], [14, 4.4, 12]]];
 }
 
-G.maps = { rig: rig(), village: village(), zoo: zoo() };
+/* ================= 2x2 TILING (maps are 2x bigger, each quarter mirrored for variety) ================= */
+function tileOf(m, ox, oz, sx, sz) {
+  return {
+    spawns: [], perches: [],
+    box(x, y, z, w, h, d, c, mat) { m.box(ox + sx * x, y, oz + sz * z, w, h, d, c, mat); },
+    deco: { push() { for (const d of arguments) { const e = Object.assign({}, d); if (e.a) { e.a = [ox + sx * e.a[0], e.a[1], oz + sz * e.a[2]]; e.b = [ox + sx * e.b[0], e.b[1], oz + sz * e.b[2]]; } else { e.x = ox + sx * e.x; e.z = oz + sz * e.z; } m.deco.push(e); } } }
+  };
+}
+function assemble(props, tileFn, T, half) {
+  const m = mkMap(props); m.half = half; m.pickups = []; m.perches = []; let n = 0;
+  const kind = () => ((n++ % 3) === 0 ? 'med' : 'ammo');
+  for (let k = 0; k < 4; k++) {
+    const ox = (k & 1 ? 1 : -1) * T, oz = (k & 2 ? 1 : -1) * T, sx = (k & 1) ? -1 : 1, sz = (k & 2) ? -1 : 1, t = tileOf(m, ox, oz, sx, sz);
+    const outer = (o, sgn) => (sgn < 0 && o < 0) || (sgn > 0 && o > 0);
+    const F = { n: outer(oz, -sz), s: outer(oz, sz), w: outer(ox, -sx), e: outer(ox, sx) };
+    tileFn(t, k, F);
+    const P = w => [ox + sx * w[0], w[1], oz + sz * w[2]];
+    t.spawns.forEach((s, i) => { const p = P(s); if (i % 2) m.pickups.push([p[0], p[1], p[2], kind()]); else m.spawns.push(p); });
+    for (const plan of t.perches) { const pl = plan.map(P); m.perches.push(pl); const e = pl[pl.length - 1]; m.pickups.push([e[0], e[1], e[2], kind()]); }
+  }
+  return m;
+}
+const mapRig = assemble({ name: 'Oil Rig', floorY: null, killY: 0.8, water: '#1b6694', skyTop: '#3f8fd6', skyBot: '#d3e8f5', fog: '#c3dcec', surface: 'metal' }, rigTile, 32, 66);
+const mapVillage = assemble({ name: 'Village', floorY: 0, ground: '#5f9138', skyTop: '#4a97df', skyBot: '#dcf0fb', fog: '#d3e8f4', surface: 'grass' }, villageTile, 60, 120);
+const mapZoo = assemble({ name: 'Zoo', floorY: 0, ground: '#78a84d', skyTop: '#58a6e8', skyBot: '#e3f3fc', fog: '#d6ebf7', surface: 'gravel' }, zooTile, 60, 120);
+// village: outer wall + main roads + market square
+ring(mapVillage, 120, 3, .8, '#8d8f8a', null, 'concrete');
+mapVillage.deco.push({ t: 'box', x: 0, y: .03, z: 0, w: 9, h: .05, d: 240, c: '#a8946f' }, { t: 'box', x: 0, y: .03, z: 0, w: 240, h: .05, d: 9, c: '#a8946f' }, { t: 'cyl', x: 0, y: 0, z: 0, r: 12, h: .06, c: '#b5a47e' });
+mapVillage.box(0, 0, 0, 3.4, 1.1, 3.4, '#8f8a80', 'concrete'); mapVillage.deco.push({ t: 'cyl', x: 0, y: 0, z: 0, r: 2, h: 1.1, c: '#8f8a80' }, { t: 'cyl', x: 0, y: 1.1, z: 0, r: 1.6, h: .05, c: '#4a90c0' });
+for (const s of [[8, 0, 8], [-8, 0, -8], [8, 0, -8], [-8, 0, 8], [30, 0, 0], [-30, 0, 0], [0, 0, 30], [0, 0, -30]]) mapVillage.spawns.push(s);
+// zoo: outer wall with entrance gate, boulevards, central fountain
+ring(mapZoo, 120, 3, .8, '#4a4d52', [{ c: 0, w: 12, t: 3 }], 'metal');
+mapZoo.box(-5, 0, 118.6, 2, 6, 2, '#a8553a', 'concrete'); mapZoo.box(5, 0, 118.6, 2, 6, 2, '#a8553a', 'concrete'); mapZoo.box(0, 5.2, 118.6, 12, 1.2, 1.4, '#a8553a', 'concrete');
+mapZoo.deco.push({ t: 'box', x: 0, y: 5.4, z: 117.8, w: 8, h: .8, d: .2, c: '#f2c230' }, { t: 'box', x: 0, y: .03, z: 0, w: 9, h: .05, d: 240, c: '#dccda4' }, { t: 'box', x: 0, y: .03, z: 0, w: 240, h: .05, d: 9, c: '#dccda4' }, { t: 'cyl', x: 0, y: 0, z: 0, r: 14, h: .06, c: '#e4d6ae' });
+mapZoo.box(0, 0, 0, 6, 1, 6, '#9aa4ad', 'concrete'); mapZoo.deco.push({ t: 'cyl', x: 0, y: 0, z: 0, r: 4, h: 1.1, c: '#9aa4ad' }, { t: 'cyl', x: 0, y: 1, z: 0, r: 3.4, h: .1, c: '#5bbad5' }, { t: 'cyl', x: 0, y: 1, z: 0, r: .4, h: 3, c: '#9aa4ad' });
+for (const s of [[10, 0, 10], [-10, 0, -10], [10, 0, -10], [-10, 0, 10], [0, 0, 100], [0, 0, 60], [40, 0, 0], [-40, 0, 0]]) mapZoo.spawns.push(s);
+G.maps = { rig: mapRig, village: mapVillage, zoo: mapZoo };
 G.rng = rng;
 
 if (typeof module !== 'undefined' && module.exports) module.exports = G; else root.G = G;
